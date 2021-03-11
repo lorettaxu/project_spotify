@@ -12,13 +12,12 @@ test_set=pd.read_csv('test_durations.csv')
 
 
 #build rating matrix
+#playlist_num=1000000
 playlist_num=1000
 
 #calculate from data.py
 track_num=34443
-print(track_num)
-#factors=10
-
+#track_num=2262292
 
 
 ratings_mat = sparse.lil_matrix((playlist_num, track_num))
@@ -42,7 +41,7 @@ time_start=time.time()
 
 def train(factors,epochs=50,theta=1e-4,lr=0.01,beta=0.02):
 	print('start')
-	old_mse=0
+	old_rmse=0
 	p=np.ones([playlist_num,factors])/10	
 	q=np.ones([track_num,factors])/10
 	#train factor by factor
@@ -50,7 +49,7 @@ def train(factors,epochs=50,theta=1e-4,lr=0.01,beta=0.02):
 		#print("factors",f)
 		for epoch in range(epochs):
 			#print('epoch',epoch)
-			current_mse=0	
+			current_rmse=0	
 			
 			total_nonzero=0
 			for i in range(playlist_num):
@@ -65,19 +64,19 @@ def train(factors,epochs=50,theta=1e-4,lr=0.01,beta=0.02):
 					p[i][f]+=lr*(err*q[j][f]-beta*p[i][f])
 					q[j][f]+=lr*(err*p[i][f]-beta*q[j][f])
 				
-					current_mse+=pow(err,2)
+					current_rmse+=pow(err,2)
 
-			current_mse=pow(current_mse/total_nonzero,0.5)
+			current_rmse=pow(current_rmse/total_nonzero,0.5)
 			
 			# print('factor',f)
 			# print('epoch',epoch)
 			# print('cost is {}'.format(current_mse))
 
-			if abs(current_mse-old_mse)<theta:	
+			if abs(current_rmse-old_rmse)<theta:	
 				break
-			old_mse=current_mse
+			old_rmse=current_rmse
 
-	print('train:',current_mse)
+	print('train:',current_rmse)
 	return p,q
 
 
@@ -87,7 +86,7 @@ def test(f):
 	q_t=np.transpose(q)
 	pred_rating_mat=np.dot(p,q_t)
 
-	current_mse=0		
+	current_rmse=0		
 	total_nonzero=0
 	for i in range(test_playlist_num):
 		total_nonzero+=len(test_ratings_mat.rows[i])
@@ -98,10 +97,10 @@ def test(f):
 			
 			err=true_r-pred_r
 		
-			current_mse+=pow(err,2)
+			current_rmse+=pow(err,2)
 
-	current_mse=pow(current_mse/total_nonzero,0.5)
-	print('test_set',current_mse)
+	current_rmse=pow(current_rmse/total_nonzero,0.5)
+	print('test_set',current_rmse)
 
 
 
@@ -111,8 +110,8 @@ def change_factor_num(factors):
 		print('change_factor_num',f)
 		test(f)
 			
-# fac†ors=50 is the best
-change_factor_num([60,70,80,90])
+
+change_factor_num([10,150,160,170,180])
 
 
 
